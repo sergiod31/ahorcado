@@ -1,0 +1,5 @@
+package juego
+
+class Ahorcado {
+
+}
