@@ -3,6 +3,7 @@ package juego
 import juegos.Utils
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.sql.SparkSession
+import scala.io.StdIn.readLine
 
 
 class Ahorcado {
@@ -33,32 +34,39 @@ class Ahorcado {
       val direccionCSV = ""
 
 
-      var listaPalabras = Utils.ingestCSV(direccionCSV, spark, ";")
+      val listaPalabras = Utils.ingestCSV(direccionCSV, spark, ";")
         .select("ID", "PALABRA").rdd.map(row => (row(0), row(1)))
         .collect().toList.asInstanceOf[List[(Int, String)]];
 
       var volverAJugar = true
       do {
         // es la 1a vez que juega o repite:
-
-        // inicializo las variables base para nueva partida
-        val palabraNum = scala.util.Random.nextInt(listaPalabras.length - 1)
-        val palabra = listaPalabras(palabraNum)._2
-        val intentosMax = 5
-        var partida = new Partida
-        var estadoRespuesta = new Array[Char](palabra.length)
-        for (i <- estadoRespuesta.indices) {
-          estadoRespuesta(i) = '_'
+        var partida = inicializarPartida(listaPalabras)
+        if (siguienteTurno(partida, dibujos, listaPalabras)) {
+          // gano
+          println("Ganaste!!")
+        } else {
+          // perdio
+          print(s"Fallaste!! La palabra era '${partida.palabraString}''")
         }
-        partida.inicializarPartida(palabra, intentosMax, estadoRespuesta)
-        // ya tengo el objeto "partida" inicializado
+        println("¿Echamos otra? Y/N")
 
-        siguienteTurno()
-
-
+        var respuesta = readLine()
+        while (!respuesta.equals("Y") ||
+          !respuesta.equals("y") ||
+          !respuesta.equals("N") ||
+          !respuesta.equals("n")) {
+          print("Escriba 'Y' o 'N' por favor")
+        }
+        if (respuesta.equals("Y") ||
+          respuesta.equals("y")) {
+          volverAJugar = true
+        }else{
+          volverAJugar = false
+        }
       } while (volverAJugar)
       // ha acabado y no quiere volver a jugar
-
+      System.exit(0)
     }
 
 
@@ -151,6 +159,26 @@ class Ahorcado {
 
   }
 
+  def inicializarPartida(listaPalabras: List[(Int, String)]): Partida = {
+    var partida = new Partida
+
+    // inicializo las variables base para nueva partida
+    val intentosMax = 5
+    val simboloIncognita = '_'
+    //
+    val palabraNum = scala.util.Random.nextInt(listaPalabras.length - 1)
+    val palabra = listaPalabras(palabraNum)._2
+    var estadoRespuesta = new Array[Char](palabra.length)
+    for (i <- estadoRespuesta.indices) {
+      estadoRespuesta(i) = simboloIncognita
+    }
+    partida.inicializarPartida(palabra, intentosMax, estadoRespuesta)
+    // ya tengo el objeto "partida" inicializado
+    partida
+
+  }
+
+
   /*
    * estadoRespuesta es un array estilo [R__A] para la palabra "RATA"
    */
@@ -181,7 +209,7 @@ class Ahorcado {
   /*
    * si la respuesta ya habia sido metida previamente, retorna true
    */
-  def comprobarRespuestaYaMetida(historialRespuestas: Array[Char], respuesta: Char): Boolean = {
+  def comprobarRespuestaEnHistorial(historialRespuestas: Array[Char], respuesta: Char): Boolean = {
     historialRespuestas.foreach(e => {
       if (e.equals(respuesta)) {
         true
@@ -229,13 +257,82 @@ class Ahorcado {
     respuestasOrdenadas
   }
 
-  def siguienteTurno(partida: Partida, dibujos: Array[String]): Boolean = {
+  /*
+   * si gana, retorna true
+   * si pierde, retorna false
+   * si aun queda por jugar, caso recursivo
+   */
+  def siguienteTurno(partida: Partida, dibujos: Array[String], listaPalabras: List[(Int, String)]): Boolean = {
     // escribo
-    imprimirPartida(dibujos(partida.intentos), partida.estadoRespuesta, partida.)
+    imprimirPartida(dibujos(partida.intentos), partida.estadoRespuesta,
+      partida.historialRespuestas, partida.intentos, partida.intentosMax)
+
     // leo
+    var respuesta = readLine()
+    var inputOk = true
+    val letra = respuesta.charAt(0)
+    do {
+      var inputOk = true
+      if (respuesta.length > 1) {
+        println("Solo una letra, por favor")
+        respuesta = readLine()
+        inputOk = false
+      }
+      if ((letra < 'A' || letra > 'Z') &&
+        (letra < 'a' || letra > 'z')) {
+        println("Introduzca una letra, no un símbolo, por favor")
+        respuesta = readLine()
+        inputOk = false
+      }
+    } while (!inputOk)
 
-    //compruebo
 
+    //actualizo la partida
+    var acerto = false
+    for (i <- partida.palabraArray) {
+      if (partida.palabraArray(i).equals(letra)) {
+        acerto = true
+        partida.estadoRespuesta(i) = letra
+      }
+      if (!acerto) {
+        partida.intentos += 1
+      }
+      partida.historialRespuestas = ordenarRespuestas(partida.historialRespuestas, letra)
+    }
+    if (partida.intentos >= partida.intentosMax) {
+      // perdio :(
+      return false
+    }
+    //continua
+    if (comprobarVictoria(partida.estadoRespuesta)) {
+      // gano :)
+      true
+    } else {
+      siguienteTurno(partida, dibujos, listaPalabras)
+    }
+  }
 
+  def comprobarVictoria(estadoRespuesta: Array[Char]): Boolean = {
+    for (i <- estadoRespuesta) {
+      if (estadoRespuesta(i).equals('_')) {
+        return false
+      }
+    }
+    true
+  }
+
+  def repetir(): Boolean = {
+    println("¿Echamos otra? Y/N")
+    var respuesta = ""
+    do {
+      respuesta = readLine()
+    } while (!respuesta.equals("y") &&
+      !respuesta.equals("Y") &&
+      !respuesta.equals("n") &&
+      !respuesta.equals("N"))
+    if (respuesta.equals("Y") || respuesta.equals("y")) {
+      true
+    }
+    false
   }
 }
