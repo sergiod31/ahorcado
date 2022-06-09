@@ -7,21 +7,7 @@ import scala.io.StdIn.readLine
 
 
 class Ahorcado {
-  class Partida {
-    var palabraString: String = ""
-    var palabraArray: Array[Char] = null
-    var intentos: Int = 0
-    var intentosMax: Int = 0
-    var estadoRespuesta: Array[Char] = null
-    var historialRespuestas: Array[Char] = new Array[Char](0)
 
-    def inicializarPartida(palabra: String, intentosMax: Int, estadoRespuesta: Array[Char]): Unit = {
-      this.palabraString = palabra
-      var palabraArray = palabra.toCharArray
-      this.intentosMax = intentosMax
-      this.estadoRespuesta = estadoRespuesta
-    }
-  }
 
   object juego {
     def main(args: Array[String]): Unit = {
@@ -61,7 +47,7 @@ class Ahorcado {
         if (respuesta.equals("Y") ||
           respuesta.equals("y")) {
           volverAJugar = true
-        }else{
+        } else {
           volverAJugar = false
         }
       } while (volverAJugar)
@@ -157,6 +143,22 @@ class Ahorcado {
         "  / \\   ||\n" +
         "________||______"
 
+  }
+
+  class Partida {
+    var palabraString: String = ""
+    var palabraArray: Array[Char] = null
+    var intentos: Int = 0
+    var intentosMax: Int = 0
+    var estadoRespuesta: Array[Char] = null
+    var historialRespuestas: Array[Char] = new Array[Char](0)
+
+    def inicializarPartida(palabra: String, intentosMax: Int, estadoRespuesta: Array[Char]): Unit = {
+      this.palabraString = palabra
+      var palabraArray = palabra.toCharArray
+      this.intentosMax = intentosMax
+      this.estadoRespuesta = estadoRespuesta
+    }
   }
 
   def inicializarPartida(listaPalabras: List[(Int, String)]): Partida = {
