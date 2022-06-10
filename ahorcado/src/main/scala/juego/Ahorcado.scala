@@ -165,7 +165,7 @@ object juego {
     var partida = new Partida
 
     // inicializo las variables base para nueva partida
-    val intentosMax = dibujos.length
+    val intentosMax = dibujos.length - 1
     val simboloIncognita = '_'
     //
     val palabraNum = scala.util.Random.nextInt(listaPalabras.length - 1)
@@ -227,37 +227,32 @@ object juego {
    * pero tampoco vamos a ejecutar esto 1 millon de veces/segundo
    *
    * mas eficiente seria con un arbol rojonegro
+   *
+   * despues de rehacer tantas veces este bloque porque no me deja modificar
+   * el valor del iterador de un for, me he decidido hacerlo a lo burro
    */
   def ordenarRespuestas(historialRespuestas: Array[Char], respuesta: Char): Array[Char] = {
-    println(s"ordenarRespuestas, respuesta: ${respuesta}, como int: ${respuesta.asInstanceOf[Int]}")
-    val respuestasOrdenadas = new Array[Char](historialRespuestas.length + 1)
+    val respuestasOrdenadas:Array[Char] = new Array[Char](historialRespuestas.length + 1)
 
-    /*
-    // en caso de que el array historial este vacio
-    if (historialRespuestas.length == 0) {
+    // si historialRespuestas es un array de length 0
+    if (historialRespuestas.length <= 0) {
       respuestasOrdenadas(0) = respuesta
       return respuestasOrdenadas
     }
-    */
 
+    respuestasOrdenadas(respuestasOrdenadas.length - 1) = respuesta
 
-    var ite = 0
-    var respuestaMetida = false
-    for (i <- 0 to historialRespuestas.length - 1) {
-      if (historialRespuestas(i) <= respuesta) { // no se mete la respuesta
-        respuestasOrdenadas(ite) = historialRespuestas(i)
-      } else { // bingo, se mete la respuesta
-        respuestasOrdenadas(ite) = respuesta
-        respuestaMetida = true
+    var haCambiado = true
+    while (haCambiado) {
+      haCambiado = false
+      for (i <- 0 to respuestasOrdenadas.length - 2) {
+          if(respuestasOrdenadas(i) > respuestasOrdenadas(i + 1)){
+            haCambiado = true
+            val aux:Char = respuestasOrdenadas(i)
+            respuestasOrdenadas(i) = respuestasOrdenadas(i + 1)
+            respuestasOrdenadas(i + 1) = aux
+          }
       }
-      ite += 1
-    }
-    if (!respuestaMetida) { // caso que se da si la respuesta hay que meterla al final
-      respuestasOrdenadas(respuestasOrdenadas.length - 1) = respuesta
-    }
-    if (respuestasOrdenadas.length >= 3) {
-      println(s"char at [2]: ${respuestasOrdenadas(2).asInstanceOf[Int]}")
-
     }
     respuestasOrdenadas
   }
@@ -273,7 +268,7 @@ object juego {
       partida.historialRespuestas, partida.intentos, partida.intentosMax)
 
     // leo entrada
-    var respuesta:String = leerEntrada()
+    var respuesta: String = leerEntrada()
     while (comprobarRespuestaEnHistorial(partida.historialRespuestas, respuesta.toLowerCase.charAt(0))) {
       println("Ya ha introducido esa letra")
       respuesta = leerEntrada()
