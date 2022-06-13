@@ -2,7 +2,8 @@ package juego
 
 import juegos.Utils
 import org.apache.log4j.{Level, Logger}
-import org.apache.spark.sql.SparkSession
+import org.apache.spark.sql.{DataFrame, SparkSession}
+
 import scala.util.matching.Regex
 import scala.io.StdIn.readLine
 
@@ -15,16 +16,16 @@ object juego {
       .appName("prueba")
       .getOrCreate();
 
-    val direccionCSV = getClass.getClassLoader.getResource("words.csv").getPath
+    val direccionCSV: String = getClass.getClassLoader.getResource("words.csv").getPath
 
-    val listaPalabras = Utils.ingestCSV(direccionCSV, spark, ";")
+    val listaPalabras: List[(Int, String)] = Utils.ingestCSV(direccionCSV, spark, ";")
       .select("ID", "PALABRA").rdd.map(row => (row(0), row(1)))
       .collect().toList.asInstanceOf[List[(Int, String)]];
 
-    var volverAJugar = true
+    var volverAJugar: Boolean = true
     do {
       // es la 1a vez que juega o repite:
-      var partida = inicializarPartida(listaPalabras)
+      val partida: Partida = inicializarPartida(listaPalabras)
       if (siguienteTurno(partida, dibujos, listaPalabras, 0)) {
         // gano
         println("Ganaste!!")
@@ -34,7 +35,7 @@ object juego {
       }
       println("¿Echamos otra? Y/N")
 
-      var respuesta = readLine()
+      var respuesta: String = readLine()
       while (!respuesta.equals("Y") &&
         !respuesta.equals("y") &&
         !respuesta.equals("N") &&
@@ -161,15 +162,15 @@ object juego {
   }
 
   def inicializarPartida(listaPalabras: List[(Int, String)]): Partida = {
-    var partida = new Partida
+    val partida: Partida = new Partida
 
     // inicializo las variables base para nueva partida
-    val intentosMax = dibujos.length - 1
-    val simboloIncognita = '_'
+    val intentosMax: Int = dibujos.length - 1
+    val simboloIncognita: Char = '_'
     //
-    val palabraNum = scala.util.Random.nextInt(listaPalabras.length - 1)
-    val palabra = listaPalabras(palabraNum)._2.toLowerCase
-    var estadoRespuesta = new Array[Char](palabra.length)
+    val palabraNum: Int = scala.util.Random.nextInt(listaPalabras.length - 1)
+    val palabra: String = listaPalabras(palabraNum)._2.toLowerCase
+    val estadoRespuesta: Array[Char] = new Array[Char](palabra.length)
     for (i <- 0 to estadoRespuesta.indices.length - 1) {
       estadoRespuesta(i) = simboloIncognita
     }
@@ -221,18 +222,10 @@ object juego {
     false
   }
 
-  /*
-   * se que no es el algoritmo mas eficiente,
-   * pero tampoco vamos a ejecutar esto 1 millon de veces/segundo
-   *
-   * mas eficiente seria con un arbol rojonegro
-   *
-   * despues de rehacer tantas veces este bloque porque no me deja modificar
-   * el valor del iterador de un for, me he decidido hacerlo a lo burro
-   */
+
   def ordenarRespuestas(historialRespuestas: Array[Char], respuesta: Char): Array[Char] = {
     var respuestasOrdenadas: Array[Char] = new Array[Char](historialRespuestas.length + 1)
-    for(i <- 0 to historialRespuestas.length - 1){
+    for (i <- 0 to historialRespuestas.length - 1) {
       respuestasOrdenadas(i) = historialRespuestas(i)
     }
     respuestasOrdenadas(respuestasOrdenadas.length - 1) = respuesta
@@ -257,9 +250,9 @@ object juego {
       respuesta = leerEntrada()
     }
 
-    val letra = respuesta.toLowerCase.charAt(0)
+    val letra: Char = respuesta.toLowerCase.charAt(0)
     //actualizo la partida
-    var acerto = false
+    var acerto: Boolean = false
     for (i <- 0 to partida.palabraArray.length - 1) {
       if (partida.palabraArray(i).equals(letra)) {
         acerto = true
@@ -294,8 +287,8 @@ object juego {
   }
 
   def leerEntrada(): String = {
-    var respuesta = ""
-    var inputOk = true
+    var respuesta: String = ""
+    var inputOk: Boolean = true
     do {
       inputOk = true
       respuesta = readLine()
@@ -311,7 +304,7 @@ object juego {
 
   def repetir(): Boolean = {
     println("¿Echamos otra? Y/N")
-    var respuesta = ""
+    var respuesta: String = ""
     do {
       respuesta = readLine()
     } while (!respuesta.equals("y") &&
