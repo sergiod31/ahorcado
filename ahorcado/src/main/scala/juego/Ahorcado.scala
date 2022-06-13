@@ -232,23 +232,12 @@ object juego {
    * el valor del iterador de un for, me he decidido hacerlo a lo burro
    */
   def ordenarRespuestas(historialRespuestas: Array[Char], respuesta: Char): Array[Char] = {
-    println(s"Respuesta: ${respuesta}")
-    val respuestasOrdenadas:Array[Char] = new Array[Char](historialRespuestas.length + 1)
-
-    // si historialRespuestas es un array de length 0
-    if (historialRespuestas.length <= 0) {
-      respuestasOrdenadas(0) = respuesta
-      return respuestasOrdenadas
+    val respuestasOrdenadas: Array[Char] = new Array[Char](historialRespuestas.length + 1)
+    for(i <- 0 to historialRespuestas.length - 1){
+      respuestasOrdenadas(i) = historialRespuestas(i)
     }
-
     respuestasOrdenadas(respuestasOrdenadas.length - 1) = respuesta
-
     respuestasOrdenadas.sorted
-    print("ARRAY FINAL: ")
-    for(e <- respuestasOrdenadas){
-      print(s"${e} ")
-    }
-    println(s"")
     respuestasOrdenadas
   }
 
@@ -282,6 +271,7 @@ object juego {
       partida.intentos += 1
     }
     partida.historialRespuestas = ordenarRespuestas(partida.historialRespuestas, letra)
+
     if (partida.intentos >= partida.intentosMax) {
       // perdio :(
       return false
