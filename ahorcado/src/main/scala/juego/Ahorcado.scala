@@ -15,8 +15,7 @@ object juego {
       .appName("prueba")
       .getOrCreate();
 
-    val direccionCSV = "C:\\Users\\sdominso\\Documents\\GitHub\\ahorcado\\src\\main\\resources\\words.csv"
-
+    val direccionCSV = getClass.getClassLoader.getResource("words.csv").getPath
 
     val listaPalabras = Utils.ingestCSV(direccionCSV, spark, ";")
       .select("ID", "PALABRA").rdd.map(row => (row(0), row(1)))
@@ -232,12 +231,12 @@ object juego {
    * el valor del iterador de un for, me he decidido hacerlo a lo burro
    */
   def ordenarRespuestas(historialRespuestas: Array[Char], respuesta: Char): Array[Char] = {
-    val respuestasOrdenadas: Array[Char] = new Array[Char](historialRespuestas.length + 1)
+    var respuestasOrdenadas: Array[Char] = new Array[Char](historialRespuestas.length + 1)
     for(i <- 0 to historialRespuestas.length - 1){
       respuestasOrdenadas(i) = historialRespuestas(i)
     }
     respuestasOrdenadas(respuestasOrdenadas.length - 1) = respuesta
-    respuestasOrdenadas.sorted
+    respuestasOrdenadas = respuestasOrdenadas.sorted
     respuestasOrdenadas
   }
 
