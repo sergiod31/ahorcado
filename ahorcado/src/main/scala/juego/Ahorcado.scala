@@ -232,6 +232,7 @@ object juego {
    * el valor del iterador de un for, me he decidido hacerlo a lo burro
    */
   def ordenarRespuestas(historialRespuestas: Array[Char], respuesta: Char): Array[Char] = {
+    println(s"Respuesta: ${respuesta}")
     val respuestasOrdenadas:Array[Char] = new Array[Char](historialRespuestas.length + 1)
 
     // si historialRespuestas es un array de length 0
@@ -242,18 +243,12 @@ object juego {
 
     respuestasOrdenadas(respuestasOrdenadas.length - 1) = respuesta
 
-    var haCambiado = true
-    while (haCambiado) {
-      haCambiado = false
-      for (i <- 0 to respuestasOrdenadas.length - 2) {
-          if(respuestasOrdenadas(i) > respuestasOrdenadas(i + 1)){
-            haCambiado = true
-            val aux:Char = respuestasOrdenadas(i)
-            respuestasOrdenadas(i) = respuestasOrdenadas(i + 1)
-            respuestasOrdenadas(i + 1) = aux
-          }
-      }
+    respuestasOrdenadas.sorted
+    print("ARRAY FINAL: ")
+    for(e <- respuestasOrdenadas){
+      print(s"${e} ")
     }
+    println(s"")
     respuestasOrdenadas
   }
 
