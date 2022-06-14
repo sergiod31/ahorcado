@@ -162,9 +162,6 @@ object juego {
   }
 
 
-  final case class IllegalInputException(cause: Int) extends Exception() {
-  }
-
   def inicializarPartida(listaPalabras: List[(Int, String)]): Partida = {
     val partida: Partida = new Partida
 
@@ -210,7 +207,6 @@ object juego {
       print(historialRespuestas(historialRespuestas.length - 1)) // pinto la ultima letra
       println("]")
     }
-
     println("Introduce letra")
   }
 
@@ -248,32 +244,10 @@ object juego {
       partida.historialRespuestas, partida.intentos, partida.intentosMax)
 
     // leo entrada
-    var respuesta = ""
-    try {
-      respuesta = leerEntrada()
-    } catch {
-      case e: IllegalInputException =>
-        if (e.cause == 1) {
-          println("Solo un digito")
-        }
-        if (e.cause == 2) {
-          println("Solo letras ")
-        }
-    }
+    var respuesta = leerEntrada()
     while (comprobarRespuestaEnHistorial(partida.historialRespuestas, respuesta.toLowerCase.charAt(0))) {
       println("Ya ha introducido esa letra")
-      try {
-        respuesta = leerEntrada()
-      } catch {
-        case e: IllegalInputException =>
-          if (e.cause == 1) {
-            println("Solo un digito")
-          }
-          if (e.cause == 2) {
-            println("Solo letras ")
-          }
-      }
-
+      respuesta = leerEntrada()
     }
 
     val letra: Char = respuesta.toLowerCase.charAt(0)
@@ -320,10 +294,12 @@ object juego {
       respuesta = readLine()
       val patternLetra: Regex = "[a-zA-ZñÑ]".r
       if (respuesta.length > 1 || respuesta.length <= 0) {
-        throw IllegalInputException(1)
+        println("Introduzca solo una letra, por favor")
+        inputOk = false
       }
       if (!patternLetra.pattern.matcher(respuesta).find()) {
-        throw IllegalInputException(2)
+        println("No introduzca símbolos ni números, por favor")
+        inputOk = false
       }
     } while (!inputOk)
     respuesta
