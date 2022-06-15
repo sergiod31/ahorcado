@@ -244,25 +244,43 @@ object juego {
       partida.historialRespuestas, partida.intentos, partida.intentosMax)
 
     // leo entrada
-    var respuesta = leerEntrada()
-    while (comprobarRespuestaEnHistorial(partida.historialRespuestas, respuesta.toLowerCase.charAt(0))) {
-      println("Ya ha introducido esa letra")
-      respuesta = leerEntrada()
-    }
-
-    val letra: Char = respuesta.toLowerCase.charAt(0)
-    //actualizo la partida
-    var acerto: Boolean = false
-    for (i <- 0 to partida.palabraArray.length - 1) {
-      if (partida.palabraArray(i).equals(letra)) {
-        acerto = true
-        partida.estadoRespuesta(i) = letra
+    var respuesta = leerEntrada(partida.palabraString)
+    if (respuesta.length <= 1) {
+      while (comprobarRespuestaEnHistorial(partida.historialRespuestas, respuesta.toLowerCase.charAt(0))) {
+        println("Ya ha introducido esa letra")
+        respuesta = leerEntrada(partida.palabraString)
       }
     }
+
+    respuesta = respuesta.toLowerCase
+
+    // compruebo si ha intentado adivinar t0do del tiron
+    var acerto: Boolean = false
+    if (respuesta.length > 1) {
+      // ha introducido una palabra
+      if (respuesta.equals(partida.palabraString)) {
+        // gano la partida
+        partida.estadoRespuesta = partida.palabraArray
+        return true
+      }
+    } else {
+      // ha introducido una sola letra
+      val letra = respuesta.charAt(0)
+      partida.historialRespuestas = ordenarRespuestas(partida.historialRespuestas, letra)
+
+      //actualizo partida.estadoRespuesta
+      for (i <- 0 to partida.palabraArray.length - 1) {
+        if (partida.palabraArray(i).equals(letra)) {
+          acerto = true
+          partida.estadoRespuesta(i) = letra
+        }
+      }
+    }
+
+
     if (!acerto) {
       partida.intentos += 1
     }
-    partida.historialRespuestas = ordenarRespuestas(partida.historialRespuestas, letra)
 
     if (partida.intentos >= partida.intentosMax) {
       // perdio :(
@@ -286,15 +304,18 @@ object juego {
     true
   }
 
-  def leerEntrada(): String = {
+  def leerEntrada(solucion: String): String = {
     var respuesta: String = ""
     var inputOk: Boolean = true
     do {
       inputOk = true
       respuesta = readLine()
+      if (respuesta.length == solucion.length) {
+        return respuesta
+      }
       val patternLetra: Regex = "[a-zA-ZñÑ]".r
       if (respuesta.length > 1 || respuesta.length <= 0) {
-        println("Introduzca solo una letra, por favor")
+        println("Introduzca solo una letra o la solución completa, por favor")
         inputOk = false
       }
       if (!patternLetra.pattern.matcher(respuesta).find()) {
