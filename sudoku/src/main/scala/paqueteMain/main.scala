@@ -1,0 +1,5 @@
+package paqueteMain
+
+class main {
+
+}
